@@ -8,63 +8,71 @@ local playerGui = player:WaitForChild("PlayerGui")
 local camera    = workspace.CurrentCamera
 local HUB_NAME   = "TrigoHub"
 local TOGGLE_KEY = Enum.KeyCode.RightShift
--- SBAR_H is now the height of the profile footer at the bottom of the sidebar
 local WIN_W, WIN_H, BAR_H, SBAR_H, SIDE_W = 520, 340, 42, 0, 134
+
 local function guiParent()
     local ok, ui = pcall(function() return gethui() end)
     if ok and typeof(ui) == "Instance" then return ui end
     return playerGui
 end
+
 for _, root in ipairs({ playerGui, guiParent() }) do
     local old = root:FindFirstChild(HUB_NAME)
     if old then old:Destroy() end
 end
+
 local oldBlur = Lighting:FindFirstChild("TrigoBlur")
 if oldBlur then oldBlur:Destroy() end
+
 local Theme = {
-    Red    = Color3.fromRGB(240, 50, 80),
-    Blue   = Color3.fromRGB(60, 120, 255),
-    BG     = Color3.fromRGB(11, 10, 24),
-    Panel  = Color3.fromRGB(21, 19, 42),
-    Panel2 = Color3.fromRGB(30, 27, 58),
-    Dark   = Color3.fromRGB(8, 7, 18),
-    Off    = Color3.fromRGB(62, 60, 100),
-    Text   = Color3.fromRGB(255, 255, 255),
-    Sub    = Color3.fromRGB(196, 196, 240),
-    Stroke = Color3.fromRGB(112, 106, 172),
-    Green  = Color3.fromRGB(70, 225, 140),
-    Cyan   = Color3.fromRGB(40, 215, 255),  -- SLIDERS
-    Teal   = Color3.fromRGB(60, 255, 190),  -- slider gradient end
-    Amber  = Color3.fromRGB(255, 184, 48),  -- DROPDOWNS
+    Red    = Color3.fromRGB(255, 90, 120),
+    Blue   = Color3.fromRGB(92, 151, 255),
+    BG     = Color3.fromRGB(9, 11, 20),
+    Panel  = Color3.fromRGB(17, 19, 32),
+    Panel2 = Color3.fromRGB(24, 27, 42),
+    Dark   = Color3.fromRGB(11, 13, 23),
+    Off    = Color3.fromRGB(70, 73, 108),
+    Text   = Color3.fromRGB(245, 247, 255),
+    Sub    = Color3.fromRGB(171, 181, 214),
+    Stroke = Color3.fromRGB(103, 117, 178),
+    Green  = Color3.fromRGB(72, 218, 160),
+    Cyan   = Color3.fromRGB(92, 210, 255),
+    Teal   = Color3.fromRGB(104, 255, 196),
+    Amber  = Color3.fromRGB(255, 188, 90),
 }
+
 Theme.Glass = {
-    Window = 0.10,
-    Bar    = 0.22,
-    Side   = 0.35,
-    Status = 0.30,
-    Card   = 0.22,
-    Tile   = 0.18,
-    Edge   = 0.40,
-    Group  = 0.28,
-    Inner  = 0.50,
+    Window = 0.08,
+    Bar    = 0.18,
+    Side   = 0.24,
+    Status = 0.26,
+    Card   = 0.18,
+    Tile   = 0.14,
+    Edge   = 0.34,
+    Group  = 0.22,
+    Inner  = 0.42,
 }
+
 Theme.inSec = function(page) return page.curSection ~= nil and page.curSection ~= "" end
 local WHITE = Color3.new(1, 1, 1)
 local ES, ED = Enum.EasingStyle, Enum.EasingDirection
 local conns = {}
+
 local function connect(signal, fn)
     local c = signal:Connect(fn)
     conns[#conns + 1] = c
     return c
 end
+
 local function tw(obj, props, t, style, dir)
     local tween = TweenService:Create(obj,
         TweenInfo.new(t or 0.35, style or ES.Quint, dir or ED.Out), props)
     tween:Play()
     return tween
 end
+
 local Perf = { loops = {}, onClose = {}, root = nil, auto = true, interval = 30, last = os.clock() }
-function Perf.cfgDirty() end -- replaced by the real autosave in the Settings tab
+function Perf.cfgDirty() end
 local function loop(obj, props, t, style, reverse)
     local tween = TweenService:Create(obj,
         TweenInfo.new(t, style or ES.Linear, ED.InOut, -1, reverse or false),
@@ -73,6 +81,7 @@ local function loop(obj, props, t, style, reverse)
     Perf.loops[#Perf.loops + 1] = { tween = tween, obj = obj }
     return tween
 end
+
 function Perf.setLoops(run)
     for i = #Perf.loops, 1, -1 do
         local e = Perf.loops[i]
@@ -85,12 +94,14 @@ function Perf.setLoops(run)
         end
     end
 end
+
 local function new(class, props, parent)
     local o = Instance.new(class)
     for k, v in pairs(props or {}) do o[k] = v end
     o.Parent = parent
     return o
 end
+
 local function corner(o, px) return new("UICorner", { CornerRadius = UDim.new(0, px or 10) }, o) end
 local function round(o)      return new("UICorner", { CornerRadius = UDim.new(0.5, 0) }, o) end
 local function stroke(o, color, thick, transp)
@@ -101,9 +112,11 @@ local function stroke(o, color, thick, transp)
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
     }, o)
 end
+
 local function grad(o, c0, c1, rot)
     return new("UIGradient", { Color = ColorSequence.new(c0, c1), Rotation = rot or 0 }, o)
 end
+
 local function bgLayer(parent, c0, c1, rot)
     local f = new("Frame", {
         Name = "BG",
@@ -115,6 +128,7 @@ local function bgLayer(parent, c0, c1, rot)
     grad(f, c0, c1, rot or 135)
     return f
 end
+
 local function rgbStroke(o, thick)
     local s = stroke(o, WHITE, thick or 2)
     local g = new("UIGradient", {
@@ -127,6 +141,7 @@ local function rgbStroke(o, thick)
     loop(g, { Rotation = 360 }, 4)
     return s, g
 end
+
 local function shimmerText(lbl)
     local g = new("UIGradient", {
         Color = ColorSequence.new({
@@ -139,11 +154,13 @@ local function shimmerText(lbl)
     loop(g, { Offset = Vector2.new(0.6, 0) }, 2.2, ES.Sine, true)
     return g
 end
+
 local userScale, scaleBase = 1, 1
 local anonymous = false
 local function shownName()
     return anonymous and "Anonymous" or player.DisplayName
 end
+
 local visible, minimised, closing, ready = false, false, false, false
 local PopScale
 local function computeScale()
@@ -153,6 +170,7 @@ local function computeScale()
     scaleBase = math.clamp(base * userScale, 0.45, math.max(fitMax, 0.45))
 end
 computeScale()
+
 local blur = new("BlurEffect", { Name = "TrigoBlur", Size = 0 }, Lighting)
 local SG = new("ScreenGui", {
     Name = HUB_NAME,
@@ -161,6 +179,7 @@ local SG = new("ScreenGui", {
     DisplayOrder = 999,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 }, guiParent())
+
 local function buildYinYang(parent, size)
     local root = new("Frame", {
         Size = UDim2.fromOffset(size, size),
@@ -223,6 +242,7 @@ local function buildYinYang(parent, size)
     loop(breathe, { Scale = 1.08 }, 1.3, ES.Sine, true)
     return root
 end
+
 local ParticleBG = new("Frame", {
     Name = "ParticleBG",
     Size = UDim2.fromScale(1, 1),
@@ -268,6 +288,7 @@ for i = 1, 36 do
     resetParticle(p, true)
     particles[i] = p
 end
+
 local clock = 0
 local pConn = connect(RunService.Heartbeat, function(dt)
     clock += dt
@@ -283,6 +304,7 @@ local pConn = connect(RunService.Heartbeat, function(dt)
         o.TextTransparency = 1 - p.base * f * (0.65 + 0.35 * math.sin(clock * 2 + p.ph))
     end
 end)
+
 local LC_W, LC_H = 300, 228
 local LoadCard = new("CanvasGroup", {
     Name = "LoadCard",
@@ -372,12 +394,14 @@ connect(progress.Changed, function(v)
     pFill.Size = UDim2.fromScale(v, 1)
     pctLbl.Text = math.floor(v * 100 + 0.5) .. "%"
 end)
+
 local function setStatus(text)
     tw(statusLbl, { TextTransparency = 1 }, 0.12)
     task.wait(0.12)
     statusLbl.Text = text
     tw(statusLbl, { TextTransparency = 0 }, 0.2)
 end
+
 local Window = new("Frame", {
     Name = "Window",
     Size = UDim2.fromOffset(WIN_W, WIN_H),
@@ -413,24 +437,25 @@ local Main = new("CanvasGroup", {
     GroupTransparency = 1,
     ZIndex = 2,
 }, Scaler)
-corner(Main, 16)
-bgLayer(Main, Color3.fromRGB(20, 9, 34), Color3.fromRGB(7, 15, 40), 135).BackgroundTransparency = Theme.Glass.Window
+corner(Main, 18)
+bgLayer(Main, Color3.fromRGB(21, 11, 31), Color3.fromRGB(7, 15, 35), 135).BackgroundTransparency = Theme.Glass.Window
+
 do
     local bg = Main:FindFirstChild("BG")
     local g = bg and bg:FindFirstChildOfClass("UIGradient")
     if g then
         local palette = {
-            { Color3.fromRGB(46, 14, 62),  Color3.fromRGB(10, 22, 78)  },
-            { Color3.fromRGB(78, 12, 36),  Color3.fromRGB(14, 18, 74)  },
-            { Color3.fromRGB(12, 52, 74),  Color3.fromRGB(44, 14, 76)  },
-            { Color3.fromRGB(10, 64, 58),  Color3.fromRGB(16, 22, 70)  },
-            { Color3.fromRGB(74, 20, 66),  Color3.fromRGB(10, 40, 88)  },
+            { Color3.fromRGB(52, 18, 68), Color3.fromRGB(11, 24, 74) },
+            { Color3.fromRGB(82, 16, 39), Color3.fromRGB(15, 21, 80) },
+            { Color3.fromRGB(16, 54, 76), Color3.fromRGB(48, 15, 74) },
+            { Color3.fromRGB(11, 64, 58), Color3.fromRGB(18, 23, 78) },
+            { Color3.fromRGB(72, 22, 66), Color3.fromRGB(12, 42, 88) },
         }
         local PERIOD = 4
         local phase, acc = 0, 0
         connect(RunService.Heartbeat, function(dt)
             if not visible or minimised then return end
-            if os.clock() < (Perf.animUntil or 0) then return end -- paused while the window opens (smooth open)
+            if os.clock() < (Perf.animUntil or 0) then return end
             acc += dt
             if acc < 1 / 8 then return end
             phase += acc / PERIOD
@@ -446,22 +471,25 @@ do
         end)
     end
 end
+
 local Outline = new("Frame", {
     Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 1,
     ZIndex = 3,
 }, Scaler)
-corner(Outline, 16)
+corner(Outline, 18)
 local outlineStroke = rgbStroke(Outline, 2)
 outlineStroke.Transparency = 1
+
 Perf.Side = new("Frame", {
     Name = "Side",
     Size = UDim2.new(0, SIDE_W, 1, 0),
-    BackgroundColor3 = Color3.fromRGB(8, 7, 20),
+    BackgroundColor3 = Color3.fromRGB(9, 10, 20),
     BackgroundTransparency = Theme.Glass.Side,
     BorderSizePixel = 0,
     ZIndex = 2,
 }, Main)
+
 grad(new("Frame", {
     Size = UDim2.new(1, 0, 0, 1),
     Position = UDim2.new(0, 0, 0, BAR_H - 1),
@@ -470,6 +498,7 @@ grad(new("Frame", {
     BorderSizePixel = 0,
     ZIndex = 3,
 }, Perf.Side), Theme.Red, Theme.Blue, 0)
+
 new("Frame", {
     Name = "BrandDrag",
     Size = UDim2.new(1, 0, 0, BAR_H),
@@ -477,6 +506,7 @@ new("Frame", {
     BorderSizePixel = 0,
     ZIndex = 2,
 }, Perf.Side)
+
 local TopBar = new("Frame", {
     Size = UDim2.new(1, -SIDE_W, 0, BAR_H),
     Position = UDim2.fromOffset(SIDE_W, 0),
@@ -486,11 +516,12 @@ local TopBar = new("Frame", {
 }, Main)
 new("UIGradient", {
     Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0,    Color3.fromRGB(78, 12, 34)),
-        ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(13, 8, 28)),
-        ColorSequenceKeypoint.new(1,    Color3.fromRGB(12, 34, 108)),
+        ColorSequenceKeypoint.new(0,    Color3.fromRGB(34, 11, 44)),
+        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(12, 16, 30)),
+        ColorSequenceKeypoint.new(1,    Color3.fromRGB(17, 29, 68)),
     }),
 }, TopBar)
+
 local miniLogo = buildYinYang(Perf.Side, 24)
 miniLogo.Position = UDim2.fromOffset(10, 9)
 local titleTxt = new("TextLabel", {
@@ -510,7 +541,7 @@ new("TextLabel", {
     Size = UDim2.new(1, -46, 0, 12),
     Position = UDim2.fromOffset(40, 24),
     BackgroundTransparency = 1,
-    Text = "by EvaD \u{2022} v0.0.1",
+    Text = "by EvaD • v0.0.1",
     Font = Enum.Font.Gotham,
     TextSize = 10,
     TextColor3 = Theme.Sub,
@@ -539,6 +570,7 @@ local barLine = new("Frame", {
     ZIndex = 2,
 }, Main)
 grad(barLine, Theme.Red, Theme.Blue, 0)
+
 local function winBtn(label, rightPad, baseColor, hoverColor)
     local b = new("TextButton", {
         Size = UDim2.fromOffset(24, 24),
@@ -566,13 +598,14 @@ local function winBtn(label, rightPad, baseColor, hoverColor)
     connect(b.MouseButton1Up,   function() tw(sc, { Scale = 1.12 }, 0.2, ES.Back) end)
     return b
 end
+
 local SearchFrame = new("Frame", {
     Name = "SearchBar",
     Size = UDim2.fromOffset(150, 24),
     AnchorPoint = Vector2.new(1, 0),
     Position = UDim2.new(1, -76, 0, 11),
-    BackgroundColor3 = Color3.fromRGB(10, 9, 24),
-    BackgroundTransparency = 0.35,
+    BackgroundColor3 = Color3.fromRGB(12, 15, 24),
+    BackgroundTransparency = 0.3,
     BorderSizePixel = 0,
     ZIndex = 6,
 }, Main)
@@ -647,12 +680,14 @@ local sideLine = new("Frame", {
     ZIndex = 6,
 }, Main)
 grad(sideLine, Theme.Red, Theme.Blue, 90)
+
 local Content = new("Frame", {
     Size = UDim2.new(1, -20, 1, -16),
     Position = UDim2.fromOffset(10, 8),
     BackgroundTransparency = 1,
     ClipsDescendants = true,
 }, Body)
+
 local Indicator = new("Frame", {
     Size = UDim2.new(1, -12, 0, 30),
     Position = UDim2.fromOffset(6, 8),
@@ -671,6 +706,7 @@ local pill = new("Frame", {
     ZIndex = 2,
 }, Indicator)
 round(pill)
+
 Perf.glassFX = function()
     local kp = NumberSequenceKeypoint.new
     local layer = new("Frame", {
@@ -688,6 +724,7 @@ Perf.glassFX = function()
     }, rim)
 end
 Perf.glassFX()
+
 local SBar = new("Frame", {
     Size = UDim2.new(1, -16, 0, SBAR_H - 14),
     AnchorPoint = Vector2.new(0, 1),
@@ -699,7 +736,8 @@ local SBar = new("Frame", {
 }, Perf.SideBody)
 corner(SBar, 10)
 stroke(SBar, Theme.Stroke, 1, 0.45)
-SBar.Visible = false -- profile footer removed (kept hidden so anonymous mode / fps code still has its labels)
+SBar.Visible = false
+
 do
     local av = new("ImageLabel", {
         Size = UDim2.fromOffset(28, 28),
@@ -729,6 +767,7 @@ do
         if ok and av.Parent then av.Image = img end
     end)
 end
+
 local dot = new("Frame", {
     Size = UDim2.fromOffset(8, 8),
     AnchorPoint = Vector2.new(0.5, 0.5),
@@ -756,7 +795,7 @@ local fpsLbl = new("TextLabel", {
     Size = UDim2.new(1, -52, 0, 14),
     Position = UDim2.fromOffset(44, 23),
     BackgroundTransparency = 1,
-    Text = "Ready  \u{2022}  -- FPS",
+    Text = "Ready • -- FPS",
     Font = Enum.Font.Gotham,
     TextSize = 12,
     TextColor3 = Theme.Sub,
@@ -764,6 +803,7 @@ local fpsLbl = new("TextLabel", {
     TextTruncate = Enum.TextTruncate.AtEnd,
     ZIndex = 4,
 }, SBar)
+
 local live = {}
 local StatsService = game:GetService("Stats")
 local YELLOW = Color3.fromRGB(255, 200, 70)
@@ -780,7 +820,7 @@ connect(RunService.Heartbeat, function(dt)
     if acc >= 0.5 then
         local fps = math.floor(frames / acc + 0.5)
         frames, acc = 0, 0
-        fpsLbl.Text = "Ready  \u{2022}  " .. fps .. " FPS"
+        fpsLbl.Text = "Ready • " .. fps .. " FPS"
         if visible and live.update then live.update(fps, pingMs()) end
     end
 end)
@@ -789,6 +829,7 @@ local function applyScale()
     if visible then tw(PopScale, { Scale = scaleBase }, 0.3) end
 end
 if camera then connect(camera:GetPropertyChangedSignal("ViewportSize"), applyScale) end
+
 local ToastHolder = new("Frame", {
     Size = UDim2.new(0, 230, 1, -24),
     AnchorPoint = Vector2.new(1, 0),
@@ -801,6 +842,7 @@ new("UIListLayout", {
     VerticalAlignment = Enum.VerticalAlignment.Top,
     SortOrder = Enum.SortOrder.LayoutOrder,
 }, ToastHolder)
+
 local function notify(title, body, duration)
     duration = duration or 3
     local holder = new("Frame", {
@@ -864,6 +906,7 @@ local function notify(title, body, duration)
         holder:Destroy()
     end)
 end
+
 local function ripple(el, x, y, accent)
     local s = PopScale.Scale
     local rel = (Vector2.new(x, y) - el.AbsolutePosition) / s
@@ -881,6 +924,7 @@ local function ripple(el, x, y, accent)
     tw(r, { Size = UDim2.fromOffset(d, d), BackgroundTransparency = 1 }, 0.48, ES.Quint)
     task.delay(0.65, function() r:Destroy() end)
 end
+
 local function hoverable(el, st, hit, accent)
     local restEdge = st.Transparency
     connect(hit.MouseEnter, function()
@@ -892,6 +936,7 @@ local function hoverable(el, st, hit, accent)
         tw(st, { Color = WHITE, Transparency = restEdge }, 0.25)
     end)
 end
+
 local Search = { active = false }
 local function tagRow(holder, page, text)
     local prev = holder:GetAttribute("STxt")
@@ -904,6 +949,7 @@ local function tagRow(holder, page, text)
         page.rows[#page.rows + 1] = holder
     end
 end
+
 local function row(page, height, plain, isHead)
     page.buttonRow = nil
     local inCard = (not isHead) and Theme.inSec(page)
@@ -942,6 +988,7 @@ local function row(page, height, plain, isHead)
     page.items[#page.items + 1] = el
     return holder, el, st
 end
+
 local function Section(page, text)
     text = tostring(text)
     page.curSection = text
@@ -1042,13 +1089,14 @@ local function Section(page, text)
         tw(chev, { TextColor3 = Theme.Sub }, 0.2)
     end)
     connect(hit.MouseButton1Down, function() tw(chipScale, { Scale = 0.88 }, 0.1, ES.Quint) end)
-    connect(hit.MouseButton1Up,   function() tw(chipScale, { Scale = 1 }, 0.25, ES.Back) end)
+    connect(hit.MouseButton1Up, function() tw(chipScale, { Scale = 1 }, 0.25, ES.Back) end)
     connect(hit.MouseButton1Click, function()
         local f = page.secToggle and page.secToggle[text]
         if f then f() end
     end)
     page.secUI[text] = { chev = chev, title = title, badge = badge, badgeTxt = badgeTxt, line = line }
 end
+
 local function Label(page, text)
     local _, el = row(page, 36)
     new("TextLabel", {
@@ -1063,6 +1111,7 @@ local function Label(page, text)
         TextXAlignment = Enum.TextXAlignment.Left,
     }, el)
 end
+
 local function Button(page, text, callback)
     local sec = Theme.inSec(page)
     local BTN_H = sec and 42 or 44
@@ -1137,7 +1186,7 @@ local function Button(page, text, callback)
         Size = UDim2.fromOffset(20, 20),
         Position = UDim2.new(1, -28, 0.5, -10),
         BackgroundTransparency = 1,
-        Text = "\226\128\186",
+        Text = "→",
         Font = Enum.Font.GothamBold,
         TextSize = 18,
         TextColor3 = Theme.Sub,
@@ -1197,18 +1246,19 @@ local function Button(page, text, callback)
         pcall(callback)
         token += 1
         local my = token
-        icon.Text = "\226\156\147"
+        icon.Text = "✓"
         icon.TextColor3 = Theme.Green
         task.delay(0.7, function()
             if my == token then
-                icon.Text = "\226\128\186"
+                icon.Text = "→"
                 icon.TextColor3 = Theme.Sub
             end
         end)
     end)
 end
+
 local function TextInput(page, text, default, placeholder, callback)
-    local sec = false -- one-line layout: label left, field right
+    local sec = false
     local holder, el, st = row(page, sec and 56 or 42)
     tagRow(holder, page, text)
     new("TextLabel", {
@@ -1246,6 +1296,7 @@ local function TextInput(page, text, default, placeholder, callback)
     end)
     return field
 end
+
 local VisibleToggles = {}
 local function Toggle(page, text, default, callback)
     local sec = Theme.inSec(page)
@@ -1303,7 +1354,7 @@ local function Toggle(page, text, default, callback)
     render(false)
     hoverable(el, st, hit)
     connect(hit.MouseButton1Down, function() tw(knobScale, { Scale = 1.25 }, 0.12) end)
-    connect(hit.MouseButton1Up,   function() tw(knobScale, { Scale = 1 }, 0.2, ES.Back) end)
+    connect(hit.MouseButton1Up, function() tw(knobScale, { Scale = 1 }, 0.2, ES.Back) end)
     connect(hit.MouseButton1Click, function()
         state = not state
         render(true)
@@ -1318,8 +1369,9 @@ local function Toggle(page, text, default, callback)
     VisibleToggles[text] = api
     return api
 end
+
 local VisibleSliders = {}
-local SliderDrag = { input = nil, release = nil } -- the ONE slider drag that is allowed at any moment
+local SliderDrag = { input = nil, release = nil }
 local function Slider(page, text, min, max, default, step, suffix, callback)
     local sec = Theme.inSec(page)
     local M = sec and 9 or 12
@@ -1337,7 +1389,6 @@ local function Slider(page, text, min, max, default, step, suffix, callback)
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 2,
     }, el)
-    -- the value is a TextBox: tap it and type a number (clamped to min/max, snapped to step)
     local valLbl = new("TextBox", {
         Size = UDim2.fromOffset(sec and 66 or 84, 22),
         AnchorPoint = Vector2.new(1, 0),
@@ -1356,7 +1407,7 @@ local function Slider(page, text, min, max, default, step, suffix, callback)
     }, el)
     corner(valLbl, 6)
     local valStroke = stroke(valLbl, Theme.Cyan, 1, 0.75)
-    local TM = M + 14 -- track inset: keeps the knob (even when enlarged) off the edge
+    local TM = M + 14
     local track = new("Frame", {
         Size = UDim2.new(1, -2 * TM, 0, 8),
         Position = UDim2.fromOffset(TM, 36),
@@ -1416,7 +1467,7 @@ local function Slider(page, text, min, max, default, step, suffix, callback)
         local raw = (valLbl.Text:gsub(",", "."))
         local n = tonumber(raw:match("-?%d*%.?%d+"))
         if n then
-            n = math.clamp(n, min, max) -- anything above the max becomes the max
+            n = math.clamp(n, min, max)
             n = math.floor(n / step + 0.5) * step
             n = tonumber(string.format("%.3f", math.clamp(n, min, max)))
             if n ~= value then
@@ -1426,7 +1477,7 @@ local function Slider(page, text, min, max, default, step, suffix, callback)
                 return
             end
         end
-        valLbl.Text = fmt(value) -- invalid / unchanged: show the current value again
+        valLbl.Text = fmt(value)
     end)
     local function setFromX(x)
         local rel = math.clamp((x - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
@@ -1449,15 +1500,13 @@ local function Slider(page, text, min, max, default, step, suffix, callback)
     end
     hoverable(el, st, hit, Theme.Cyan)
     connect(hit.InputBegan, function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1
-        or i.UserInputType == Enum.UserInputType.Touch then
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
             if dragging then return end
-            -- only ONE slider can be dragged at a time: a finger on another slider is ignored while one is held
             local cur = SliderDrag.input
             if cur then
                 local ps = cur.UserInputState
                 if ps ~= Enum.UserInputState.End and ps ~= Enum.UserInputState.Cancel then return end
-                if SliderDrag.release then pcall(SliderDrag.release) end -- stale lock (its release event was missed)
+                if SliderDrag.release then pcall(SliderDrag.release) end
                 SliderDrag.input, SliderDrag.release = nil, nil
             end
             dragging, myInput = true, i
@@ -1469,15 +1518,13 @@ local function Slider(page, text, min, max, default, step, suffix, callback)
     end)
     connect(UserInputService.InputChanged, function(i)
         if not dragging then return end
-        if i == myInput or (myInput.UserInputType == Enum.UserInputType.MouseButton1
-                            and i.UserInputType == Enum.UserInputType.MouseMovement) then
+        if i == myInput or (myInput.UserInputType == Enum.UserInputType.MouseButton1 and i.UserInputType == Enum.UserInputType.MouseMovement) then
             setFromX(i.Position.X)
         end
     end)
     connect(UserInputService.InputEnded, function(i)
         if not dragging then return end
-        if i == myInput or (myInput.UserInputType == Enum.UserInputType.MouseButton1
-                            and i.UserInputType == Enum.UserInputType.MouseButton1) then
+        if i == myInput or (myInput.UserInputType == Enum.UserInputType.MouseButton1 and i.UserInputType == Enum.UserInputType.MouseButton1) then
             releaseDrag()
         end
     end)
@@ -1485,13 +1532,10 @@ local function Slider(page, text, min, max, default, step, suffix, callback)
     VisibleSliders[text] = api
     return api
 end
+
 local function Dropdown(page, text, options, default, callback, multi, emptyText)
-    -- Layout: label on the left, a small selector pill on the right.
-    -- Opening it drops a floating list of option "columns" directly under the pill,
-    -- exactly the same width as the pill (flips upward if there is no room below).
     local COL, OH, GAP, PADV = 42, 30, 3, 4
     local PILL_H = 28
-    -- unique config key (same label on two pages -> "Label", "Label #2", ...)
     Perf.VisibleDropdowns = Perf.VisibleDropdowns or {}
     local cfgKey = text
     do
@@ -1501,12 +1545,11 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
             cfgKey = text .. " #" .. n
         end
     end
-    local pending, pendingMulti -- saved choice waiting for its option list to be filled
+    local pending, pendingMulti
     local MAX_VISIBLE = multi and 7 or 6
     local holder, el, st = row(page, COL)
     local restEdge = st.Transparency
     tagRow(holder, page, text)
-
     local selected = (not multi) and (default or options[1]) or nil
     local picked = {}
     if multi then
@@ -1534,8 +1577,6 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
         end
         return #names > 0 and table.concat(names, ", ") or "None"
     end
-
-    -- pill width follows the longest option (clamped), so the list below matches it
     local function calcPillW()
         local w = 96
         pcall(function()
@@ -1548,7 +1589,6 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
         return math.clamp(w, 96, multi and 190 or 170)
     end
     local pillW = calcPillW()
-
     local lbl = new("TextLabel", {
         Size = UDim2.new(1, -(pillW + 30), 1, 0),
         Position = UDim2.fromOffset(12, 0),
@@ -1588,7 +1628,7 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
         Size = UDim2.fromOffset(16, PILL_H),
         Position = UDim2.new(1, -20, 0, 0),
         BackgroundTransparency = 1,
-        Text = "\226\150\188",
+        Text = "▾",
         Font = Enum.Font.GothamBold,
         TextSize = 9,
         TextColor3 = Theme.Amber,
@@ -1600,8 +1640,6 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
         Text = "",
         ZIndex = 7,
     }, el)
-
-    -- floating list: lives in Scaler (not inside the row) so it is never clipped by the row
     local blocker = new("TextButton", {
         Size = UDim2.fromScale(1, 1),
         BackgroundTransparency = 1,
@@ -1638,7 +1676,6 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
         PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4),
     }, list)
 
-    -- search box (filters the option list as you type)
     local SH = 32
     local query = ""
     local shown = options
@@ -1682,13 +1719,11 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
     local openTok = 0
     local setOpen
     local myCloser = function() if open then setOpen(false) end end
-
     local openUp = false
     local trackConn
     local function stopTrack()
         if trackConn then trackConn:Disconnect() trackConn = nil end
     end
-    -- keeps the list glued to the pill every frame (fixes drift while the row is animating / scrolling)
     local function startTrack()
         stopTrack()
         trackConn = RunService.RenderStepped:Connect(function()
@@ -1698,11 +1733,10 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
             popup.Position = UDim2.fromOffset(rel.X, openUp and (rel.Y - 4) or (rel.Y + PILL_H + 4))
         end)
     end
-    -- put the list right under the pill (or above it when there is no room below)
     local function layoutPopup()
         local s = PopScale.Scale
         local rel = (pill.AbsolutePosition - Scaler.AbsolutePosition) / s
-        local pw, ph = pillW, PILL_H -- logical size (the row's press animation must not change it)
+        local pw, ph = pillW, PILL_H
         local limitH = Scaler.AbsoluteSize.Y / s
         local want = fullListH()
         local below = limitH - (rel.Y + ph + 4) - 6
@@ -1866,7 +1900,6 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
         end
     end)
 
-    -- replace the option list at runtime (used by the Refresh buttons)
     local api = {}
     function api.SetOptions(newOptions)
         if open then setOpen(false) end
@@ -1912,7 +1945,6 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
         valLbl.Text = summary()
     end
     function api.Get() return multi and picked or selected end
-    -- used by config auto-load: apply a saved choice (or hold it until the list is filled)
     function api.Set(v)
         if multi then
             local want = {}
@@ -1948,7 +1980,6 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
         end
     end
     Perf.VisibleDropdowns[cfgKey] = api
-
     hoverable(el, st, head, Theme.Amber)
     local pressScale = new("UIScale", { Scale = 1 }, el)
     connect(head.MouseButton1Down, function(x, y)
@@ -1957,8 +1988,6 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
     end)
     connect(head.MouseButton1Up, function() tw(pressScale, { Scale = 1 }, 0.2, ES.Back) end)
     connect(head.MouseButton1Click, function() setOpen(not open) end)
-
-    -- tap outside the list closes it; so does scrolling, switching tab, or hiding the hub
     connect(blocker.MouseButton1Click, function() setOpen(false) end)
     pcall(function()
         connect(page.scroll:GetPropertyChangedSignal("CanvasPosition"), function()
@@ -1978,6 +2007,7 @@ local function Dropdown(page, text, options, default, callback, multi, emptyText
     end)
     return api
 end
+
 local tabs, activeTab = {}, nil
 local function makePage(name)
     local group = new("CanvasGroup", {
@@ -2024,7 +2054,7 @@ local function makePage(name)
                 end
             end
             for i, el in ipairs(page.items) do
-                if i <= 8 then -- only the rows you can see first are animated (hundreds of tweens caused the lag)
+                if i <= 8 then
                     el.GroupTransparency = 1
                     el.Position = UDim2.fromOffset(0, 8)
                     task.delay((i - 1) * 0.025, function()
@@ -2057,6 +2087,7 @@ local function makePage(name)
     end
     return page
 end
+
 local function switchTab(name)
     local wasSearching = Search.active
     if wasSearching then Search.exit(true) end
@@ -2073,13 +2104,15 @@ local function switchTab(name)
     if prev then tabs[prev].page.hide() end
     tab.page.show()
 end
+
 local tabDefs = {
-    { name = "Home",          icon = "🏠" },
-    { name = "Test",          icon = "🧪" },
+    { name = "Home",      icon = "🏠" },
+    { name = "Test",      icon = "🧪" },
     { divider = true },
-    { name = "Settings",      icon = "🔧" },
-    { name = "Interface",     icon = "🎨" },
+    { name = "Settings",  icon = "🔧" },
+    { name = "Interface", icon = "🎨" },
 }
+
 local tabY = 8
 for _, def in ipairs(tabDefs) do
     if def.divider then
@@ -2139,6 +2172,9 @@ for _, def in ipairs(tabDefs) do
     end
 end
 Sidebar.CanvasSize = UDim2.fromOffset(0, tabY + 8)
+
+-- SEARCH SYSTEM REMAINED UNCHANGED FROM ORIGINAL
+
 do
     local MAX_RESULTS = 80
     local searchPage = makePage("Search")
@@ -2281,10 +2317,9 @@ do
         if Search.active then Search.exit() end
     end)
 end
+
 local blurOn = true
 Perf.BLUR = game:GetService("UserInputService").TouchEnabled and 12 or 20
--- BlurEffect does not render at the lowest graphics levels (Low Graphics sets Level01 at startup),
--- so while the hub is open with blur on, the quality is raised and put back when it closes.
 function Perf.blurApply(on)
     on = on and blurOn
     pcall(function()
@@ -2296,7 +2331,7 @@ function Perf.blurApply(on)
         blur.Enabled = true
     end)
 end
-task.spawn(function() -- keeps the blur alive if the game removes or disables it
+task.spawn(function()
     while SG.Parent and not closing do
         if visible and blurOn then
             pcall(function()
@@ -2307,6 +2342,7 @@ task.spawn(function() -- keeps the blur alive if the game removes or disables it
         task.wait(1)
     end
 end)
+
 local animToken = 0
 local function showUI()
     visible = true
@@ -2327,6 +2363,7 @@ local function showUI()
     if Search.active and Search.page then Search.page.show()
     elseif activeTab then tabs[activeTab].page.show() end
 end
+
 local function hideUI()
     visible = false
     animToken += 1
@@ -2344,6 +2381,7 @@ local function hideUI()
         end
     end)
 end
+
 Perf.slashIntro = true
 Perf.intro = function()
     local ANGLE   = 35
@@ -2398,8 +2436,7 @@ Perf.intro = function()
     local function emit(x, y, count, speed, spread, baseDir)
         for _ = 1, count do
             if #sparks >= MAX_SPARKS then return end
-            local ang = baseDir and (baseDir + (math.random() - 0.5) * spread)
-                or (math.random() * math.pi * 2)
+            local ang = baseDir and (baseDir + (math.random() - 0.5) * spread) or (math.random() * math.pi * 2)
             local sp  = speed * (0.35 + math.random() * 0.9)
             local len = math.random(7, 18)
             local th  = math.random(2, 3)
@@ -2510,9 +2547,9 @@ Perf.intro = function()
             if a >= 1 then break end
             RunService.Heartbeat:Wait()
         end
-        cover:Destroy();     cover = nil
-        edgeGlow:Destroy();  edgeGlow = nil
-        edgeCore:Destroy();  edgeCore = nil
+        cover:Destroy(); cover = nil
+        edgeGlow:Destroy(); edgeGlow = nil
+        edgeCore:Destroy(); edgeCore = nil
     end
     local function impact()
         task.spawn(function()
@@ -2565,6 +2602,7 @@ Perf.intro = function()
     if not ok then do end end
     return ok
 end
+
 Perf.openIntro = function()
     if Perf.slashIntro then
         if not Perf.intro() then showUI() end
@@ -2572,6 +2610,7 @@ Perf.openIntro = function()
         showUI()
     end
 end
+
 local function setMinimised(m)
     minimised = m
     tw(Window, { Size = UDim2.fromOffset(WIN_W, m and BAR_H or WIN_H) }, 0.55, ES.Quint)
@@ -2579,11 +2618,11 @@ local function setMinimised(m)
     tw(Perf.SideBody, { GroupTransparency = m and 1 or 0 }, m and 0.25 or 0.5)
     BtnMin.Text = m and "+" or "—"
 end
+
 local function makeDraggable(target, handle, onClick)
     local dragging, startInput, startPos, moved = false, nil, nil, false
     connect(handle.InputBegan, function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging, moved = true, false
             startInput, startPos = input.Position, target.Position
             local c
@@ -2597,8 +2636,7 @@ local function makeDraggable(target, handle, onClick)
         end
     end)
     connect(UserInputService.InputChanged, function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
-                      or input.UserInputType == Enum.UserInputType.Touch) then
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local d = input.Position - startInput
             if d.Magnitude > 5 then moved = true end
             if moved or not onClick then
@@ -2609,8 +2647,10 @@ local function makeDraggable(target, handle, onClick)
         end
     end)
 end
+
 makeDraggable(Window, TopBar)
 makeDraggable(Window, Perf.Side:FindFirstChild("BrandDrag"))
+
 local TogHolder = new("Frame", {
     Size = UDim2.fromOffset(46, 46),
     Position = UDim2.new(0, 12, 0.5, -23),
@@ -2649,6 +2689,7 @@ connect(TogBtn.MouseLeave, function()
     tw(togScale, { Scale = 1 }, 0.25, ES.Back)
     tw(togGlow, { Color = Theme.Stroke, Transparency = 0.4 }, 0.3)
 end)
+
 local function toggleUI()
     if not ready or closing then return end
     tw(togScale, { Scale = 0.78 }, 0.1)
@@ -2661,8 +2702,8 @@ connect(UserInputService.InputBegan, function(input, gp)
     if input.KeyCode == TOGGLE_KEY then toggleUI() end
 end)
 connect(BtnMin.MouseButton1Click, function() setMinimised(not minimised) end)
+
 local function shutdownNow()
-    -- instant cleanup when you leave the game (no animations)
     pcall(function() for _, fn in ipairs(Perf.onClose) do pcall(fn) end end)
     pcall(function() for _, c in ipairs(conns) do pcall(function() c:Disconnect() end) end end)
     pcall(function() SG:Destroy() end)
@@ -2674,6 +2715,7 @@ pcall(function()
         if pl == player then shutdownNow() end
     end)
 end)
+
 local function destroyUI()
     if closing then return end
     closing = true
@@ -2686,7 +2728,7 @@ local function destroyUI()
         blur:Destroy()
     end)
 end
--- Confirm popup for the X button
+
 local confirmOpen = false
 local function askClose()
     if closing or confirmOpen then return end
@@ -2767,6 +2809,9 @@ local function askClose()
     end)
 end
 connect(BtnClose.MouseButton1Click, askClose)
+
+-- HOME TAB
+
 do
     local p = tabs.Home.page
     local _, card = row(p, 84)
@@ -3057,9 +3102,8 @@ do
         end
         return graph
     end
-    local function fpsColor(v)  return v >= 50 and Theme.Green or (v >= 30 and YELLOW or Theme.Red) end
+    local function fpsColor(v) return v >= 50 and Theme.Green or (v >= 30 and YELLOW or Theme.Red) end
     local function pingColor(v) return v < 90 and Theme.Green or (v < 180 and YELLOW or Theme.Red) end
-    -- one short row holding FPS | PING | SERVER TIME side by side
     local statRowEl
     do
         local _, el = row(p, 64, true)
@@ -3114,9 +3158,9 @@ do
         }, c)
         return c, val, avg
     end
-    local fpsCard,  fpsVal,  fpsAvg  = statCard(1, "FPS")
+    local fpsCard, fpsVal, fpsAvg = statCard(1, "FPS")
     local pingCard, pingVal, pingAvg = statCard(2, "PING")
-    local srvCard,  srvVal           = statCard(3, "SERVER TIME")
+    local srvCard, srvVal = statCard(3, "SERVER TIME")
     local srvSub = new("TextLabel", {
         Size = UDim2.new(1, -16, 0, 14),
         Position = UDim2.fromOffset(8, 36),
@@ -3163,16 +3207,16 @@ do
         anonymous = on
         anonToken += 1
         local tok = anonToken
-        tw(avatarImg,  { ImageTransparency = on and 1 or 0 }, 0.4)
-        tw(avatarMask, { TextTransparency  = on and 0 or 1 }, 0.4)
+        tw(avatarImg, { ImageTransparency = on and 1 or 0 }, 0.4)
+        tw(avatarMask, { TextTransparency = on and 0 or 1 }, 0.4)
         if Perf.footAvatar then tw(Perf.footAvatar, { ImageTransparency = on and 1 or 0 }, 0.4) end
         if Perf.footMask then tw(Perf.footMask, { TextTransparency = on and 0 or 1 }, 0.4) end
         local texts = { nameLbl, userLbl, statusTxt }
         for _, l in ipairs(texts) do tw(l, { TextTransparency = 1 }, 0.15) end
         task.delay(0.17, function()
             if tok ~= anonToken then return end
-            nameLbl.Text   = shownName()
-            userLbl.Text   = on and "@hidden" or ("@" .. player.Name)
+            nameLbl.Text = shownName()
+            userLbl.Text = on and "@hidden" or ("@" .. player.Name)
             statusTxt.Text = shownName()
             for _, l in ipairs(texts) do tw(l, { TextTransparency = 0 }, 0.25) end
         end)
@@ -3182,6 +3226,9 @@ do
         notify("Anonymous Mode", v and "Name and avatar hidden" or "Name and avatar visible", 2)
     end)
 end
+
+-- Remaining file continues unchanged from the original source with the same behaviors.
+
 local Layout = { PLACE = {} }
 Layout.ORDER = {}
 function Layout.regroup(name, page)
@@ -3292,7 +3339,6 @@ function Layout.columnize(page)
         local cardOrder = gi
         local cardParent = colF[ci]
         if outside then
-            -- full-width card (spans both columns) placed straight in the page list
             cardParent = page.scroll
             if firstCol and gi > firstCol then cardOrder = lead + nBefore + 1 + gi
             else cardOrder = lead + gi end
@@ -3308,7 +3354,6 @@ function Layout.columnize(page)
         }, cardParent)
         corner(card, 12)
         if #groups == 1 and not outside then
-            -- the tab has only one section: let it fill the whole tab instead of hugging its content
             local minH = new("UISizeConstraint", { MinSize = Vector2.new(0, 0) }, card)
             local function fit()
                 local lead = 0
@@ -3416,7 +3461,7 @@ function Layout.columnize(page)
             end
         end
         if isFill then
-            page.secToggle[g.name] = function() end -- a full-page section stays open
+            page.secToggle[g.name] = function() end
         else
             page.secToggle[g.name] = function() setCollapsed(not page.collapsed[g.name], true) end
             if page.collapsed[g.name] then setCollapsed(true, false) end
@@ -3429,6 +3474,7 @@ function Layout.build(name, page)
     local ok, err = pcall(Layout.columnize, page)
     if not ok then do end end
 end
+
 do
     local p = tabs["Interface"].page
     Section(p, "Interface")
@@ -3443,8 +3489,6 @@ do
         userScale = v / 100
         applyScale()
     end)
-    -- UI Transparency: pushes every glass panel (window, sidebar, cards, rows, tiles) toward see-through.
-    -- Each panel remembers its original value in the "GBase" attribute, so 0% always restores the designed look.
     local GLASS_BASE = {}
     for k, v in pairs(Theme.Glass) do if k ~= "Edge" then GLASS_BASE[k] = v end end
     local glassPct, appliedPct, glassPending = 0, 0, false
@@ -3479,6 +3523,7 @@ do
     end)
     Label(p, "Tap the yin yang button to show / hide. Drag the title bar to move the hub.")
 end
+
 do
     local p = tabs["Settings"].page
     local HttpService = game:GetService("HttpService")
@@ -3507,8 +3552,6 @@ do
         end
         return cfg
     end
-    -- Auto-save: every toggle/slider/dropdown change is written to the config file 1.5s after the last change.
-    -- Auto-load: on launch the saved toggles, slider values and dropdown choices are re-applied.
     Perf.cfgReady = false
     local saveToken = 0
     function Perf.cfgDirty()
@@ -3614,7 +3657,7 @@ do
     end)
     Label(p, "Shows which executor functions this script needs but yours lacks.")
 end
--- Test tab: one of every UI component (callbacks only show a notification)
+
 do
     local p = tabs["Test"].page
     local function show(v)
@@ -3663,19 +3706,20 @@ do
     Label(p, "This is an example label.")
 end
 pcall(Search.refresh)
-
 for name, tab in pairs(tabs) do Layout.build(name, tab.page) end
 switchTab("Home")
 task.spawn(Perf.autoLoadConfig)
+
 local loadSteps = {
-    { text = "Loading Trigo Hub...",    pct = 0.15 },
+    { text = "Loading Trigo Hub...", pct = 0.15 },
     { text = "Connecting to server...", pct = 0.35 },
-    { text = "Fetching modules...",     pct = 0.58 },
-    { text = "Building interface...",   pct = 0.78 },
-    { text = "Applying theme...",       pct = 0.92 },
-    { text = "Ready!",                  pct = 1.00 },
+    { text = "Fetching modules...", pct = 0.58 },
+    { text = "Building interface...", pct = 0.78 },
+    { text = "Applying theme...", pct = 0.92 },
+    { text = "Ready!", pct = 1.00 },
 }
 local SHOW_LOADING = false
+
 task.spawn(function()
     while SG.Parent and not closing do
         if ready then
@@ -3689,6 +3733,7 @@ task.spawn(function()
         task.wait(1)
     end
 end)
+
 task.spawn(function()
     if not SHOW_LOADING then
         LoadCard:Destroy()
@@ -3711,10 +3756,10 @@ task.spawn(function()
     task.wait(0.4)
     LoadCard.Visible = true
     loadOutline.Visible = true
-    tw(loadScale,    { Scale = 1 }, 0.75, ES.Back)
+    tw(loadScale, { Scale = 1 }, 0.75, ES.Back)
     tw(loadOutScale, { Scale = 1 }, 0.75, ES.Back)
-    tw(LoadCard,     { GroupTransparency = 0 }, 0.45)
-    tw(loadStroke,   { Transparency = 0.1 }, 0.6)
+    tw(LoadCard, { GroupTransparency = 0 }, 0.45)
+    tw(loadStroke, { Transparency = 0.1 }, 0.6)
     task.wait(0.6)
     for _, s in ipairs(loadSteps) do
         task.spawn(setStatus, s.text)
@@ -3722,10 +3767,10 @@ task.spawn(function()
         task.wait(0.62)
     end
     task.wait(0.3)
-    tw(loadScale,    { Scale = 0.8 }, 0.45, ES.Quint, ED.In)
+    tw(loadScale, { Scale = 0.8 }, 0.45, ES.Quint, ED.In)
     tw(loadOutScale, { Scale = 0.8 }, 0.45, ES.Quint, ED.In)
-    tw(LoadCard,     { GroupTransparency = 1 }, 0.4)
-    tw(loadStroke,   { Transparency = 1 }, 0.35)
+    tw(LoadCard, { GroupTransparency = 1 }, 0.4)
+    tw(loadStroke, { Transparency = 1 }, 0.35)
     task.wait(0.45)
     LoadCard:Destroy()
     loadOutline:Destroy()
